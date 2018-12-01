@@ -1,0 +1,1682 @@
+--constants
+function str_to_table(str)
+ local tab={}
+ for i=1,#str do
+   if sub(str,i,i)=="," then
+     for j=i+1,#str do
+       if sub(str,j,j)=="," then
+         local s=sub(str,i+1,j-1)
+         if (tonum(s)) s=tonum(s)
+         add(tab,s)
+         i=j
+         break
+       end
+     end
+   end
+ end
+ return tab
+end
+
+message=nil
+hplay=0
+wait=0
+n=1
+ 
+chatt=str_to_table(",6,4,5,5,8,4,8,5,6,5,3,3,5,0,3,4,4,5,6,")
+chhp=str_to_table(",20,25,30,20,40,20,80,40,50,20,20,25,15,30,25,30,40,30,30,")
+cheffk=str_to_table(",0,0,0,0,0,0,0,0,0,4,3,0,0,0,0,0,0,0,0,")
+cheffn=str_to_table(",0,0,0,0,0,0,0,0,0,8,9,0,0,0,0,0,0,0,0,")
+chcrit=str_to_table(",25,25,25,25,25,25,25,25,25,25,25,25,25,0,25,25,25,25,25,")
+chdesc=
+{
+"jack of spades - fire/metal",
+"queen of heats - plant/water",
+"king of diamonds - stone/elec",
+"jack of clubs - wind/ice",
+"black king",
+"joker",
+"white king",
+"white pawn",
+"white bishop",
+"sleeping flower",
+"static cactus",
+"muncher",
+"multi flower",
+"dummy",
+"floaty",
+"skully",
+"pumpky",
+"batty",
+"snaky",
+}
+
+eff_pal_p={7,6,-1,9,-1,7,-1,6,-1,-1,-1,6,-1,-1,10,1,12,4,14,7}
+eff_pal_n={2,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
+
+fade_in=0
+
+--messages
+messg=
+{
+"the card land has been\ninvaded by monsters\nfrom another world\n\nclick any visible place\non the map to move",
+"click on a card and then\non a target unit to use\nit.\n\nyou can use more cards\nin the same turn if they\nshare numbers or suits",
+"i don't know where these\nmonsters came from, but\nthey're not friendly\n\nsomething is hapenning\nto the cards too. my\nhearts turned to plants\nand water...",
+"\n\n  the queen of hearts\n   joined your party!\n\nshe can use hearts cards!",
+"i came to the to the\nforest to chop some wood,\nand when i came back\neveryone was gone...\n\nthere's just monsters!\nyou are the first people\ni see in a while",
+"\n\n  the king of diamonds\n   joined your party!\n\n      he can use\n    diamonds cards!",
+"the joker must have\nsomething to do with\nthese monsters\n\nlet's find him!",
+"\n\n   the jack of clubs\n   joined your party!\n\n he can use clubs cards!",
+"the white king came to\nseize this land. we must\nstop him!\n\nthese monsters must have\nbeen brought to this\nworld through the same\nportal we chessfolk have!",
+"\n\n     the black king\n   joined your party!\n\n he can't use any card...\n but still, he's strong!",
+"i opened a portal to\nother worlds? of course\ni did! hahaha!\nlet's have an\ninterdimensional party!\n\nok, things got out of\nhand, i admit it... haha!",
+"\n\n       the joker\n   joined your party!\n\n he can use any card!!!\n        hahaha!!!",
+"     you found the\n      super glove!\n\n    you can now hold\n    7 cards at once!",
+"every character and\nenemy attacks it's\nclosest opponent.\n\nif there's 2 at the same\ndistance, it will pick\neither one randomly",
+"all characters and\nenemies have 25% chance\nof striking a critical\nhit for x2 damage.\n\nuse it to your advantage!",
+}
+messg_char={0,0,2,2,3,3,4,4,5,5,6,6,0,0,0,0,0,0,0,0,}
+
+en_group=
+{
+  {15},
+  {15,15,15},
+  {16,15,16},
+  {16,16,16},
+  {17,17,16},
+		
+  {15,17,17,15},
+  {17,17,17,17},
+  {15,18,18,15},
+  {16,16,16,16},
+  {15,19,16,17,18},
+  
+  {19,19,19},
+  {15,19,16,17,18},
+  {8,19,19,17,8},
+  {8,18,9,17,8},
+  {8,9,9,8},
+  {8,8,9,7,9,8,8}
+}
+
+--gfx
+csprb={nil,nil,nil,nil,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0}
+chsprx=str_to_table(",0,17,32,49,64,80,112,96,112,0,8,16,24,32,0,8,16,24,32,")
+chspry=str_to_table(",32,32,32,32,32,32,64,32,32,64,64,64,64,64,72,72,72,72,72,")
+chsprw=str_to_table(",17,15,17,16,16,16,16,16,16,8,8,8,8,8,8,8,8,8,8,")
+chsprh=str_to_table(",16,16,16,16,16,16,16,16,16,8,8,8,8,8,8,8,8,8,8,")
+choffx=str_to_table(",0,1,0,0,-2,0,0,0,0,3,3,3,3,3,3,3,3,3,3,")
+choffy=str_to_table(",0,0,0,0,0,0,0,0,0,5,5,5,5,5,5,5,5,5,5,")
+chtr=str_to_table(",11,11,11,11,11,11,11,11,11,0,0,0,0,0,0,0,0,11,0,")
+char_vptc=str_to_table(",6,15,6,13,15,6,15,6,15,15,6,6,7,0,15,6,6,15,6,")
+
+mousep=0
+hcol={[0]=1,9,10,13}
+kcol={1,8,9,3}
+poke(0x5f2d,1)
+kposx,kposy,kflip={},{},{}
+for i=0,2 do
+ for j=1,7 do
+  local n=i*7+j
+  kposx[n]=i*4+7
+  kposy[n]=j*3+3
+  if j>4 then
+   kflip[n]=true
+  else
+   kflip[n]=false
+  end
+ end
+ kposx[22],kposx[23],kposy[22],kposy[23],kflip[22],kflip[23]=11,11,10,20,false,true
+end
+--      1       2    3      4        5     6       7         8       9       10       11          
+--local freegnd,ally,allies,allyline,enemy,enemies,enemygrnd,enmcoll,enmline,everyone,anychar
+card_tgt=
+{
+ str_to_table(",2,3,5,2,7,5,5,6,6,3,2,6,2,"),
+ str_to_table(",2,1,3,5,1,2,6,6,6,1,1,2,5,"),
+ str_to_table(",2,5,5,2,8,9,11,5,2,6,6,10,5,"),
+ str_to_table(",5,5,5,1,4,5,5,5,9,2,6,9,6,")
+}
+card_eff=
+{
+ str_to_table(",1,1,3,6,3,5,0,0,5,2,1,7,8,"),
+ str_to_table(",0,14,0,2,14,9,10,2,12,14,14,13,0,"),
+ str_to_table(",20,0,0,4,0,0,18,19,15,1,0,0,1,"),
+ str_to_table(",0,17,0,14,0,4,20,16,0,11,0,0,17,"),
+}
+card_dur=
+{
+ str_to_table(",4,4,0,2,0,0,0,0,0,4,2,0,2,"),
+ str_to_table(",0,5,0,4,99,99,0,4,4,0,0,4,0,"),
+ str_to_table(",4,0,0,2,0,0,3,4,4,4,0,0,4,"),
+ str_to_table(",0,2,0,0,0,2,4,9,0,2,0,0,1,"),
+}
+card_eff_v=
+{
+ str_to_table(",2,1,0,1,0,0,0,0,0,1,8,0,2,"),
+ str_to_table(",0,10,0,-2,11,8,6,-1,-3,12,13,6,0,"),
+ str_to_table(",1,0,0,1,0,0,1,1,1,-1,0,0,-2,"),
+ str_to_table(",0,1,0,14,0,1,-1,1,0,1,0,0,1,"),
+}
+card_dmg=
+{
+ str_to_table(",0,0,8,0,10,8,0,5,4,0,0,6,0,"),
+ str_to_table(",-8,0,-5,0,0,0,0,0,0,0,0,0,0,"),
+ str_to_table(",0,10,5,0,4,5,0,0,0,0,15,6,0,"),
+ str_to_table(",3,0,4,0,0,0,0,0,6,0,2,6,0,")
+}
+card_sub=
+{
+ str_to_table(",0,0,2,0,2,1,0,2,1,1,0,2,1,"),
+ str_to_table(",0,2,0,1,2,0,1,1,0,2,2,0,1,"),
+ str_to_table(",0,1,2,0,2,1,2,0,1,0,1,2,0,"),
+ str_to_table(",0,2,1,0,1,0,2,2,1,0,0,1,2,")
+}
+card_vptc=str_to_table(",1,1,5,1,5,6,6,5,6,1,1,5,1,2,7,2,8,7,2,8,8,2,7,7,2,8,3,9,10,3,0,9,3,3,9,3,9,0,3,13,12,11,4,11,4,12,12,11,4,13,11,12,")
+
+card_txt=
+{
+ {
+ "silver sharp: att+2 to ally\nlasts 4 turns",
+ "empower: att+1 to all allies\nlasts 4 turns",
+ "fireball: dmg enemy+neighbors\n8 dmg to target, 4 to others",
+ "honor: ally attacks twice\nlasts 2 turns",
+ "fire bomb: 5 dmg 3x3 area\ncan target ground",
+ "metal blade :pierces defense\n8 dmg",
+ "soul blade:jack deals\n1 dmg per hp he's missing",
+ "fire storm: dmg all enemies\n5 dmg",
+ "ultra blade: pierce all enemies\n4 dmg",
+ "super armor: def+1 all allies\nlasts 4 turns",
+ "ultra sharp: att+8 to ally\nlasts 2 turn",
+ "red fire: dmgs self and enemy\n6 dmg",
+ "ultra armor: halves ally dmg\nlasts 2 turns"
+ },
+ {
+ "heal:\nally hp +8",
+ "sleeping seed: wakes up if hit\nhp: 20 att:5",
+ "heal allies:\nall allies hp +5",
+ "corrosion: enemy def-2\nlasts 4 turns",
+ "static cactus: reflects dmg\nhp: 20 att:3",
+ "barrier: absorbs 8 dmg",
+ "flood: kills all enemies with\nless than 6 hp",
+ "rust: all enemies def-1\nlasts 4 turns",
+ "heartbreak: enemies spdef-3\nlasts 4 turns",
+ "muncher:\nhp: 25 att:3",
+ "multi flower:\nhp: 15 att:5",
+ "super barrier: detroyed if\ndmg>5. lasts 4 turns",
+ "flood bubble: deals damage\nequal to hp missing from enemy"
+ },
+ {
+ "super focus: critical chance x2\nlasts 4 turns",
+ "thunder:\n10 dmg to enemy",
+ "boulder: push enemy back\n5 dmg",
+ "taunt: all enemies attack ally\nlasts 2 turns",
+ "fissure: dmg 1 collumn\n4 dmg",
+ "shock: dmg 1 line\n5 dmg",
+ "stone form: attack and defense\nreduced t0 1. lasts 3 turns",
+ "confusion: 50% enemy att allies\nlasts4 turns",
+ "electrify: return dmg received\nlasts 4 turns",
+ "fear: enemy att-1\n lasts 4 turns",
+ "static power:15 dmg spread\nbetween enemies (rounded up)",
+ "quake: 6 dmg to all:\nenemies and allies",
+ "overwhelm: enemy att-2\nlasts 4 turns"
+ },
+ {
+ "super bow: hits enemy 4 times\n3 dmg per shot",
+ "freeze: stops enemy\nlasts 2 turns",
+ "wind shot: pull enemy\n4 dmg",
+ "dummy:\nhp: 30 att:0",
+ "friend wind: pull neighboring\nallies to line",
+ "track: all allies attack enemy\nlasts 2 turns",
+ "mind freeze: critical chance=0\nlasts 4 turns",
+ "sleep: wakes up if attacked\nlasts 9 turns",
+ "vacuum: pull neighboring\nenemies to line. 6 dmg",
+ "invisibility: enemies don't\nattack. lasts 2 turns",
+ "ultra bow: hits all enemies 4\ntimes. 2 dmg",
+ "wind blast: push neighboring\nenemies away from line.6 dmg",
+ "blizzard: stops all enemies\nlasts 1 turn"
+ },
+}
+
+--position of each kind on the card
+kpos=
+ {
+ {11},
+ {9,13},
+ str_to_table(",8,11,14"),
+ str_to_table(",1,7,15,21,"),
+ str_to_table(",1,7,15,21,11,"),
+ str_to_table(",1,7,15,21,4,18,"),
+ str_to_table(",1,7,15,21,4,18,22,"),
+ str_to_table(",1,7,15,21,4,18,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,11,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,")
+ }
+ --…∧░➡️⧗▤⬆️☉🅾️◆
+ --█★⬇️✽●♥웃⌂⬅️
+ --▥❎🐱ˇ▒♪😐
+ party_add={0,0,0,3,2,4,5,0,0,0,6}
+ local tt,⌂,★,🐱=1,2,3,8
+ map_tile=
+ {
+ {
+ {★,00,00,🐱,00,tt,04,13,11,tt},
+ {13,tt,tt,tt,00,🐱,00,🐱,tt,tt},
+ {13,⌂,00,tt,tt,tt,00,00,00,tt},
+ {tt,00,00,🐱,00,05,🐱,tt,🐱,00},
+ {tt,tt,tt,tt,13,tt,00,00,tt,00},
+ {tt,00,🐱,00,00,00,tt,00,00,00},
+ {🐱,00,tt,07,tt,🐱,tt,🐱,tt,00},
+ {00,tt,tt,00,🐱,09,tt,00,00,tt},
+ {00,🐱,00,tt,tt,tt,00,🐱,tt,00},
+ {tt,06,🐱,00,00,🐱,00,tt,tt,tt},
+ },
+ {
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,")
+ },
+ {
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,")
+ },
+ {
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,"),
+ str_to_table(",1,3,5,7,15,17,19,21,22,23,")
+ }
+}
+--init
+function _init()
+ messgok={}
+ next_en_gr=13
+ g_time=0
+ cam_x,cam_y=0,0
+ ptc={}
+ handsz=5
+ 
+ party={1,2,3,4,5,6}
+ party={1}
+ charlevel={13,13,13,13,13,13}
+ charlevel={2,2,2,2,2,2}
+ 
+ init_title()
+end
+
+function init_title(ending)
+ update=upd_title
+ draw=drw_title
+ fade=-128
+ if ending then
+  if ending==0 then
+   music(19)
+  else
+   music(23)
+  end
+ else
+  music(0)
+ end
+ g_time=0
+ 
+ cam_pos=25
+ camx1=0
+ camx2=0
+end
+
+function init_map()
+ new_message(1)
+ function go_to_map()
+  draw_fade_out()
+  update=upd_map
+  draw=drw_map
+  music(14)
+  g_time=0
+ end
+ 
+ go_to_map()
+ 
+ m_char_x=3
+ m_char_y=2
+ 
+ curr_map={}
+ for i=1,10 do
+  curr_map[i]={}
+  for j=1,10 do
+   curr_map[i][j]=map_tile[1][i][j]
+  end
+ end
+ 
+ --battle icons
+ dark={}
+ batt={}
+ for i=1,10 do
+  dark[i]={}
+  batt[i]={}
+  for j=1,10 do
+   dark[i][j]=true
+   batt[i][j]=rnd(1)
+  end
+ end
+ clear_dark()
+end
+
+function init_expl()
+ draw_fade_out()
+ update=upd_expl
+ draw=drw_expl
+ music(2)
+end
+
+function init_battle()
+ draw_fade_out()
+ update=upd_battle
+ draw=drw_battle
+ music(28)
+ if (next_en_gr==16) music(7)
+ wperc=0
+ used_crd={}
+ g_time=0
+ turn_card={}
+ txt={}
+ curr_k=nil
+ curr_n=nil
+ allowk=nil
+ allown=nil
+ summ_chars=0
+ summ_tile={2,4,6}
+ hand_kind={false,false,false,false,false,false}
+ 
+ turn=-1 -- -1:chars 0:cards 1:allies 2:enemies
+ 
+ deck={}
+ 
+ b_party={}
+ for i=1,#party do
+  b_party[i]=party[i]
+ end
+ 
+ hand={}
+ 
+ char={}
+ 
+ local curr_g=en_group[next_en_gr]
+ en_g_sz=#curr_g
+ local ey=4-flr(en_g_sz/2)
+ local ex=irnd(2)
+ for i=1,#curr_g do
+  if (curr_g[i]==7) ex=1
+  cr_char((ex+ey)%2+6,ey,curr_g[i],2)
+  ey+=1
+ end
+ 
+ --deal_hand()
+ 
+ free_tile={}
+end
+--init functions
+function cr_char(x,y,t,a)
+ c={}
+ c.tx=x
+ c.ty=y
+ c.tgtx=x
+ c.tgty=y
+ c.typ=t
+ c.algn=a
+ c.att=chatt[t]
+ c.crit=chcrit[t]
+ c.hp=chhp[t]
+ c.dead=false
+ c.desc=chdesc[t]
+ if (t<=6) c.hp+=min(charlevel[t]-2,10)
+ c.hpmx=c.hp
+ c.act=0
+ c.mperc=0
+ c.eff={}
+ c.ischar=1
+ if cheffk[t]>0 then
+  add(c.eff,new_eff_c(cheffk[t],cheffn[t]))
+ end
+ move(c)
+ add(char,c)
+ return c
+end
+
+function add_card(k,n,tab,ch)
+ c={}
+ c.k=k
+ c.n=n
+ c.h=0
+ c.char=ch
+ c.tgttyp=card_tgt[k][n]
+ add(tab,c)
+end
+
+function deal_hand()
+ local count=1
+ while count<=handsz do
+  if not hand[count] then
+   for crd in all(deck) do
+    hand[count]=crd
+    
+    del(deck,crd)
+    break
+   end
+  end
+  count+=1
+ end
+ reset_crd_pos()
+ new_message(2)
+end
+
+function new_ptc(ch,typ,tgt,eff,spec,dur)
+ p={}
+ p.ch,p.typ,p.tgt=ch,typ,tgt
+ --p.x=ch.x
+ --p.y=ch.y
+ p.tx=ch.tgtx+.45
+ p.ty=ch.tgty+1
+ p.tgtx=tgt.tx+.45
+ p.tgty=tgt.ty+1
+ p.eff=eff
+ p.spec=spec
+ p.dur=dur
+ local norm=(min(spec,1)+1)%2
+ local crit_mult=(1+count_eff(curr_ch,20))*norm
+ p.dmg=(ch.att+norm*count_eff(ch,1,1))*(bool_to_num(rnd(100)<=ch.crit*crit_mult)+1)
+ if (spec==7) p.dmg=ch.hpmx-ch.hp
+ p.mperc=0
+ --gfx
+ p.sprt=card_vptc[spec]
+ if (norm==1) p.sprt=char_vptc[ch.typ]
+ p.sprtflip=false
+ if (ch.algn==2) p.sprtflip=true
+ p.sprtw=1
+ if (p.sprt==13) p.sprtw=2
+ if (tgt==ch) p.sprt=0
+ add(ptc,p)
+ return p
+end
+
+function new_eff_c(k,n)
+ e={}
+ e.typ=card_eff[k][n]
+ e.val=card_eff_v[k][n]
+ e.dur=card_dur[k][n]
+ e.dmg=card_dmg[k][n]
+ return e
+end
+
+function new_fl_text(x,y,ftxt)
+ t={}
+ t.x=x
+ t.y=y
+ t.txt=ftxt
+ t.tim=0
+ add(txt,t)
+end
+--update
+function _update()
+ wait=max(0,wait-1)
+ 
+  --mouse
+ mousex,mousey=stat(32),stat(33)
+ if stat(34)==1 then
+  mousep+=1
+ else
+  mousep=0
+ end
+ 
+  if message==nil then
+   g_time+=1
+  	update()
+  	if (btn()>0 and btn()~=64) new_message(0," this game doesn't use\n     the keyboard\n\n  use the mouse only!")
+  else
+   if message.tim~=8 then
+    message.tim+=1
+    message.sz+=5
+    if (message.tim>8) message.sz-=10
+    if message.tim>16 then
+     if message.num>=3 and message.num<=11 and message.num%2==1 then
+      new_message(message.num+1)
+     else
+      message=nil
+     end
+    end
+   else
+    if (mousep==1) message.tim+=1
+   end
+  end
+ if fade_in>0 then
+  fade_in+=1
+  if (fade_in>13) fade_in=0
+ end
+end
+
+function upd_expl()
+ if (mousep==1) go_to_map()
+end
+
+function upd_title()
+ if (g_time<=100) cam_pos+=22/(g_time+11)
+ if (mousep==1) init_map()
+ if (g_time==500) music(-1,7000)
+ if (g_time==750) init_title()
+ camx1=sin(cam_pos/100)*-20+20
+ camx2=sin(cam_pos/100)*20-20
+end
+
+function upd_map()
+ --mouse tile
+ tilex,tiley=flr((mousex-4)/10),flr((mousey-4)/10)
+ --move char
+ if mousep==1
+ and min(tilex,tiley)>=1
+ and max(tilex,tiley)<=10
+ and dark[tilex][tiley]==false
+ and curr_map[tilex][tiley]~=1
+ then
+  m_char_x,m_char_y=tilex,tiley--init_battle()
+  --clear dark
+  clear_dark()
+  --enter tile
+  local curr_tile=curr_map[m_char_x][m_char_y]
+  if curr_tile==8 then
+   curr_map[m_char_x][m_char_y]=0
+   --init_battle()
+  elseif curr_tile==9 then
+   next_en_gr=16
+   init_battle()
+  elseif curr_tile==3 then
+   new_message(13)
+   handsz=7
+   curr_map[m_char_x][m_char_y]=0
+  end
+  add_to_party(party_add[curr_tile])
+ end
+end
+
+function upd_battle()
+ hplay=0
+ tilex,tiley=flr((mousex+8)/16),flr((mousey-4)/10)
+ 
+ function refr_crd_tgt()
+ 	--card targeting
+  hchars=0
+  htilex=nil
+  htiley=nil
+  hareax1=nil
+  hareay1=nil
+  hareax2=nil
+  hareay2=nil
+ 	for crd in all(hand) do
+ 	 if crd.h==2 then
+ 	  local tgttyp=crd.tgttyp
+ 	  hchars=c_typ_to_algn(tgttyp)
+  	 --mouse tile
+  	 if max(tilex,tiley)<=7
+  	 and min(tilex,tiley)>=1
+  	 then
+   	 if tgttyp==1 or tgttyp==2 
+   	 or tgttyp==5 or tgttyp==7
+   	 or tgttyp==11
+   	 then
+   	  hareax1,hareay1,hareax2,hareay2=tilex,tiley,tilex,tiley
+   	 elseif tgttyp==4 or tgttyp==9 then
+    	 hareax1=1
+    	 hareay1=tiley
+    	 hareax2=7
+   	 elseif tgttyp==8 then
+    	 hareax1=tilex
+    	 hareay1=1
+    	 hareax2=tilex
+    	 hareay2=7
+   	 elseif tgttyp==3 then
+    	 hareax1,hareay1,hareax2,hareay2=char_area(1)
+   	 elseif tgttyp==6 then
+    	 hareax1,hareay1,hareax2,hareay2=char_area(2)
+   	 elseif tgttyp==10 then
+    	 hareax1,hareay1,hareax2,hareay2=char_area(3)
+   	 end
+   	end
+ 	 end
+ 	end
+	end
+	refr_crd_tgt()
+
+ if wait==0 then
+  reset_crd_pos()
+  pre_battle=false
+  if turn==-1 then
+   if summ_chars<#party and summ_chars<3 then
+    pre_battle=true
+    chx,chy=flr((mousex+1)/16),flr((mousey+6)/16)
+    if mousep==1 then
+     if chy==6 and b_party[chx] and b_party[chx]~=0 then
+      summ_chars+=1
+      local ch=cr_char(2,summ_tile[summ_chars],b_party[chx],1)
+      if b_party[chx]<=4 then
+       for i=1,charlevel[chx] do
+        add_card(b_party[chx],i,deck,ch)
+       end
+      end
+      hand_kind[b_party[chx]]=true
+      b_party[chx]=0
+     end
+    end
+   else
+    --joker cards
+    local joker=nil
+    for ch in all(char) do
+     if (ch.typ==6) joker=ch
+    end
+    if hand_kind[6]==true then
+     for k=1,4 do
+      if hand_kind[k]==false then
+       for i=1,charlevel[chx] do
+        add_card(k,i,deck,joker)
+       end
+      end
+     end
+    end
+    turn=0
+    shuffle_table(deck)
+   end
+  elseif turn==0 then
+   deal_hand()
+   --highlight cards
+   if (hlight and hlight.h~=2) hlight=nil
+   for crd in all(hand) do
+    crd.y=94
+    if (crd.h==1) crd.h=0
+    if mousex>=crd.x and
+    mousey>=crd.y-9 and
+    mousex<=crd.x+24 and
+    mousey<=crd.y+53
+    then
+     hlight=crd
+    end
+   end
+   if hlight and
+   (allowk==nil or 
+   allowk==hlight.k or 
+   allown==hlight.n)
+   and hlight.h~=3
+   then
+    hlight.h,hlight.y=max(1,hlight.h),85
+    if mousep==1 then
+     if (sel_card) sel_card.h=0
+     hlight.h=2 sel_card=hlight
+     refr_crd_tgt()
+    end
+   end
+   --selected card
+   if sel_card then
+    if mousep==1 then
+     tgt_ok=nil
+     sel_card.isline=0
+     if sel_card.tgttyp==4
+     or sel_card.tgttyp==8
+     or sel_card.tgttyp==9
+     then
+      sel_card.isline=sel_card.tgttyp
+     end
+     sel_card.tgt=in_area(hchars,hareax1,hareay1,hareax2,hareay2,true,sel_card.isline)
+     if sel_card.tgt then
+     	sel_card.h=3
+      add(turn_card,sel_card)
+      if not allowk then
+       allowk=sel_card.k
+       allown=sel_card.n
+      else
+       if allowk==sel_card.k then
+        allown=0
+       else
+        allowk=0
+       end
+      end
+      hlight=nil
+      sel_card=nil
+     end
+    end
+   end
+   --play turn
+   if mousex>=107 and
+   mousey>=99 and
+   mousex<=124 and
+   mousey<=109
+   then
+    hplay=1
+    if mousep==1 and turn==0 then
+     turn=1
+     wait=1
+     for crd in all(hand) do
+     	if crd.h==2 then
+     	 crd.h=0
+     	elseif crd.h==3 then
+     	 crd.used=1
+     	end
+     end
+    end
+   else
+    hplay=0
+   end
+  else
+   --battle
+   --select spell acting char
+   if #turn_card>0 then
+    for crd in all(turn_card) do
+     if curr_ch==nil then
+      curr_ch=crd.char
+      curr_opp=crd.tgt
+      opp_isline=crd.isline
+      opp_ln_algn=c_typ_to_algn(crd.tgttyp)
+      curr_k=crd.k
+      curr_n=crd.n
+      del(turn_card,crd)
+      card_turn=true
+      walk=0
+      curr_ch.att=card_dmg[crd.k][crd.n]
+      break
+     end
+    end
+   else
+    --set att damage
+    for ch in all(char) do
+     if curr_ch==nil then
+      --normal damage
+      if ch.act<=count_eff(ch,6) and count_eff(ch,16)==0 and count_eff(ch,17)==0 and ch.algn==turn and ch.dead==false then 
+       curr_ch=ch curr_opp=nil curr_ch.att=chatt[curr_ch.typ]
+       --stone form attack
+       if (count_eff(ch,18)>0) curr_ch.att=1
+      end
+      card_turn=false
+     end
+    end
+   end
+   --curr_char attack
+   if curr_ch then
+    local conf_att=(count_eff(curr_ch,19)>0 and rnd(1)>.5)
+    --search closest opponents
+    if curr_opp==nil then
+     function closest_enm(ch_t,x,y)
+      local dist,oppn=99,{}
+      for opp in all(ch_t) do
+       if curr_ch~=opp and (opp.algn~=turn or conf_att) and (count_eff(opp,11)==0) and opp.dead==false then
+        local diff=abs(opp.tx-curr_ch.tx)*x+abs(opp.ty-curr_ch.ty)*y
+        if diff<=dist then
+         if diff~=dist then
+          oppn={}
+         end
+         add(oppn,opp)
+         dist=diff
+        end
+       	if (count_eff(opp,4)>0) oppn[1],oppn[2]=opp,opp break
+       end
+      end
+      return oppn
+     end
+     oppn=closest_enm(char,1,1)
+     oppn=closest_enm(oppn,1,0)
+     curr_opp,opp1,opp2=oppn[1],oppn[1],oppn[2]
+     if opp2 and
+      (opp2.tx<opp1.tx or
+      (opp2.tx==opp1.tx and rnd(1)<.5))
+      then
+      curr_opp=opp2
+     end
+     opp2=curr_opp
+     curr_opp={opp2}
+     walk=0
+    else
+     --attack
+     if #ptc==0 then
+      --where to walk
+      if walk==0 then
+       oppx,oppy=0,0
+       if opp_isline==4
+       or opp_isline==9 then
+        oppx=4
+        oppy=curr_opp
+       elseif opp_isline==8 then
+        oppx=curr_opp-2
+        oppy=4
+       else
+       for opp in all(curr_opp) do
+        oppx+=opp.tx-(opp.algn*4)+6
+        oppy+=opp.ty
+       end
+       oppx=oppx/#curr_opp
+       oppy=oppy/#curr_opp
+       end
+       curr_ch.tgtx=oppx
+       curr_ch.tgty=oppy
+       curr_ch.mperc=0
+       curr_ch.tgt=curr_opp
+      end
+      --walk in
+      walk+=1
+      if walk<=5 then
+       curr_ch.mperc+=.2
+      elseif walk<=15 then
+       --attack
+       if walk==10 then
+        local eff,spec=nil,0
+        if (curr_k) eff,spec=new_eff_c(curr_k,curr_n),(curr_k-1)*13+curr_n
+        --opp is line; wind effect
+        if opp_isline==4
+        or opp_isline==9 then
+         local lny=curr_opp
+         curr_opp=in_area(opp_ln_algn,1,lny-1,7,lny+1,false)
+         for opp in all(curr_opp) do
+          local diff=opp.ty-lny
+          if abs(diff)>0 then
+           if (spec==44 or spec==48) push_char(opp,0,-diff)
+           if (spec==51) push_char(opp,0,diff)
+           new_ptc(curr_ch,0,opp,eff,spec)
+          end
+         end
+         curr_opp=in_area(opp_ln_algn,1,lny,7,lny,false)
+        elseif opp_isline==8 then
+         curr_opp=in_area(opp_ln_algn,curr_opp,1,curr_opp,7,false)
+        end
+        --multi att
+        local multi=1
+        if (spec==40 or spec==50) multi=4
+        for i=1,multi do
+         for opp in all(curr_opp) do
+          local last_ptc=new_ptc(curr_ch,0,opp,eff,spec)
+          --spread dmg
+          if (spec==37) last_ptc.dmg=-flr(-last_ptc.dmg/#curr_opp)
+         end
+        end
+        opp_isline=0
+        --self dmg
+        if (spec==12) dmg_char(curr_ch,6,spec)
+       end
+      elseif walk<20 then
+       curr_ch.mperc-=.2
+      else
+       if (card_turn==false) curr_ch.act+=1
+       curr_ch.tgtx,curr_ch.tgty=curr_ch.tx,curr_ch.ty
+       curr_ch=nil
+       curr_k=nil
+       curr_n=nil
+      end
+     end
+    end
+   else
+   --if no char to act, change
+    --turn and clear acts
+   	for ch in all(char) do
+     if (ch.algn==turn) ch.act=0
+    end
+    turn=(turn+1)%3
+    --eff dur decrease
+    if turn==0 then
+    	for ch in all(char) do
+    	 count_eff_dur(ch)
+    	end
+    	if (messgok[14]) new_message(15)
+    	new_message(14)
+    end
+    turn_card={}
+    allowk,allown=nil,nil
+   end
+  end
+ end
+ 
+ --del from hand
+ for crd in all(hand) do
+  if crd.used then
+   crd.used+=1
+   if (crd.used>=20) add(used_crd,crd) del(hand,crd)
+	 end
+	end
+	
+	foreach(char,move)
+	--particles
+	for p in all(ptc) do
+	 local tgt=p.tgt
+	 p.mperc+=.15
+	 move(p)
+	 if p.mperc>1 then
+	  add(p.tgt.eff,p.eff)
+	  --dmg
+	  if (tgt.ischar) dmg_char(p.tgt,p.dmg,p.spec,p.eff,p.ch)
+	  --aoe
+	  if p.eff and p.eff.typ==3 then
+	   local tgts=in_area(tgt.algn,tgt.tx-1,tgt.ty-1,tgt.tx+1,tgt.ty+1,false)
+	   for t in all(tgts) do
+	    if (t~=p.tgt) dmg_char(t,p.dmg/2,p.spec,p.eff,p.ch)
+	   end
+	  end
+	  if p.eff and p.eff.typ==14 then
+	   cr_char(tgt.tx,tgt.ty,p.eff.val,p.ch.algn,p.dur)
+  end
+  --del
+ 	del(ptc,p)
+ end
+	end
+ --if all from 1 side are dead
+	can_end=true
+	local countchars={0,0}
+	for ch in all(char) do
+	 if (ch.dead==false) countchars[ch.algn]+=1
+	 if (ch.tx~=ch.tgtx) can_end=false
+	end
+ if can_end==true and turn>=0 then
+ 	--loss
+ 	if countchars[1]==0 then
+  	new_message(0,"\n       game over")
+  	music(2)
+  	_init()
+ 	end
+ 	--victory
+ 	if countchars[2]==0 then
+  	for i=1,6 do
+ 	  if charlevel[i]<13 then
+ 	  	charlevel[i]=charlevel[i]+1
+ 	  	new_message(0," level up! now you can\nuse cards up to level "..charlevel[1].."!")
+  		end
+  	end
+ 	 go_to_map()
+ 	 if next_en_gr>=16 then
+ 	  if #party==6 then
+ 	   init_title(0)
+ 	   new_message(0,"  card land is saved!\n       for now...\n\n      thank you!")
+ 	  else
+ 	   init_title(0)
+ 	   new_message(0,"    the white king\n     was defeated!\n\n   but there's still\n     some secrets\n   to be discovered...\n\n  find them on the map!")
+ 	  end
+ 	 else
+ 	  next_en_gr=min(next_en_gr+1,15)
+ 	 end
+  end
+ end
+end
+--update functions
+function middle(a,b,perc)
+ return b*perc+a*(1-perc)
+end
+
+function count_eff(ent,eff,delete)
+ local count=0
+ for ef in all(ent.eff) do
+  if ef.typ==eff then
+   count+=ef.val
+   if (delete==true) del(ent.eff,ef)
+  end
+ end
+ return count
+end
+
+function count_eff_dur(ent)
+ for ef in all(ent.eff) do
+  ef.dur-=1
+  if ef.dur<=0 then
+   del(ent.eff,ef)
+  end
+ end
+end
+
+function c_typ_to_algn(typ)
+ if typ==1 then
+  return 0
+ elseif typ<=4 then
+  return 1
+ elseif typ==7 then
+  return 4
+ elseif typ<=9 then
+  return 2
+ else
+  return 3
+ end
+end
+
+function in_area(algn,x1,y1,x2,y2,click,linetyp)
+ local tgt={}
+ y2=y2 or y1
+ if (tilex<=7 and tilex>=1
+ and tiley<=7 and tiley>=1)
+ or click==false
+ then
+  --line
+  if linetyp==4
+  or linetyp==9
+  then
+   return y1
+  --collumn
+  elseif linetyp==8 then
+   return x1
+  end
+  if algn==4 or (algn==0 and
+  tile_algn(x1,y1)==false)
+  then
+   e={}
+   e.tx=x1
+   e.ty=y1
+   e.algn=2
+   add(free_tile,e)
+   add(tgt,e)
+  else
+   for ch in all(char) do
+    if (x1 and 
+    (algn==3 or algn==ch.algn)
+    and ch.tx>=x1
+    and ch.ty>=y1
+    and ch.tx<=x2
+    and ch.ty<=y2) then
+      add(tgt,ch)
+    end
+   end
+  end
+ end
+ if (#tgt==0) return nil
+ return tgt
+end
+
+function move(e)
+ e.x=middle(e.tx,e.tgtx,e.mperc)*16-7
+ e.y=middle(e.ty,e.tgty,e.mperc)*10-5
+end
+
+function push_char(ch,xs,ys)
+ if (tile_algn(ch.tx+xs,ch.ty+ys)==false) ch.tx+=xs ch.ty+=ys
+ if (max(ch.tx,ch.ty)>8 or min(ch.tx,ch.ty)<0) del(char,ch)
+end
+
+function dmg_char(ch,v,spec,eff,srcch,ref)
+ --stone form
+ if (count_eff(ch,18)>0 and v>1) v=1
+ if (spec==26) v=ch.hpmx-ch.hp
+ if (spec==29) push_char(ch,1,0)
+ if (spec==42) push_char(ch,-1,0)
+ local barrier=count_eff(ch,9)
+ local supbarr=count_eff(ch,13)
+ local efftyp=0
+ if (eff) efftyp=eff.typ
+ if barrier==0 and supbarr then
+  if v~=0 then
+   local armor=count_eff(ch,2)
+   if (spec>0) armor+=count_eff(ch,12)
+   if (efftyp==5 or ref) armor=0
+   if v>0 then
+    v=max(0,v-armor)
+    local divider=count_eff(ch,8)
+    if (divider>0) v=flr(v/divider)
+   end
+   if (count_eff(ch,15)>0 and not ref) dmg_char(srcch,v,0,nil,ch,true)
+  end
+ end
+ if (barrier==0 and supbarr== 0) or v<0 then
+	 ch.hp=mid(0,ch.hp-v,ch.hpmx)
+	 --stop sleep
+	 if (v>0) count_eff(ch,16,true)
+	else
+	 if supbarr>0  then
+	  if (v>=supbarr) mod_eff(ch,13,-v)
+	 else
+	 	mod_eff(ch,9,-v)
+	 end
+	 new_fl_text(20,20,count_eff(ch,13))
+	end
+	if (v~=0) new_fl_text(ch.x+5,ch.y+5,v)
+	if ch.hp<=0 then
+	 if ch.typ<=6 then
+	  ch.dead=true
+	 else
+	  del(char,ch)
+	 end
+	end
+	if (efftyp==10 and ch.hp<=6) del(char,ch)
+end
+
+function mod_eff(ch,typ,val)
+ for e in all(ch.eff) do
+  if e.typ==typ then
+   e.val+=val
+   if (e.val<0) del(ch.eff,e)
+  end
+ end
+end
+
+function char_area(algn)
+ local x1,x2,y1,y2=7,1,7,1
+ for ch in all(char) do
+  if algn==ch.algn or algn==3 then
+   x1=min(x1,ch.tx)
+   x2=max(x2,ch.tx)
+   y1=min(y1,ch.ty)
+   y2=max(y2,ch.ty)
+  end
+ end
+ return x1,y1,x2,y2
+end
+
+function tile_algn(x,y)
+ for ch in all(char) do
+  if (ch.tx==x and ch.ty==y) return ch.algn
+ end
+ return false
+end
+
+function irnd(n)
+ return flr(rnd(n))
+end
+
+function irnd1(n)
+ return irnd(n)+1
+end
+
+function shuffle_table(t)
+ for i=#t,1,-1 do
+  local j=irnd1(i)
+  t[i],t[j]=t[j],t[i]
+ end
+ return t
+end
+
+function reset_crd_pos()
+ for n,crd in pairs(hand) do
+  crd.x,crd.y=n*7+27,94+20
+ end
+end
+
+function unpack(list,from,to)
+ from,to=from or 1,to or #list
+ if from<=to then
+  return list[from],unpack(list,from+1,to)
+ end
+end
+
+function to_tab_unp(tab)
+ return unpack(str_to_table(tab))
+end
+
+function clear_dark()
+ for i=max(m_char_x-1,1),min(m_char_x+1,10) do
+  for j=max(m_char_y-1,1),min(m_char_y+1,10) do
+   if i==m_char_x or j==m_char_y then
+    dark[i][j]=false
+   end
+  end
+ end
+end
+
+function bool_to_num(bool)
+ if (bool==true) return 1
+ return 0
+end
+
+function add_to_party(char)
+ if (char==0) return
+ for p in all(party) do
+  if (p==char) return
+ end
+ add(party,char)
+ if (char) new_message(char*2-1)
+end
+
+--arrumar pra ficar menos variaveis redundantes
+function new_message(num,txt)
+ if num>0 then
+  if messgok[num]==nil then
+   messgok[num]=true
+   message={}
+   message.num=num
+   message.tim=0
+   message.sz=0
+   message.txt=messg[num]
+   message.char=messg_char[num]
+  end
+ else
+  message={}
+  message.num=num
+  message.tim=0
+  message.sz=0
+  message.txt=txt
+  message.char=0
+ end
+end
+--draw
+function _draw()
+	cls(1)
+	pal()
+	
+	draw()
+	
+	if message then
+	 local sz=message.sz
+	 outline(rectfill,7,1,52-sz,64-sz,76+sz,64+sz,1)
+	 if message.tim==8 then
+	  print(message.txt,17,54,7)
+	  if (message.char>0) draw_char(message.char,56,30)
+	 end
+	end
+	--mouse cursor
+	outline(spr,0,1,0,mousex+1,mousey+1)
+	if (fade_in>0) draw_fade_in(fade_in)
+	--?btn(),0,0,0
+end
+
+function drw_expl()
+ cls(0)
+ rectfill(to_tab_unp(",16,0,111,33,6,"))
+ clip(to_tab_unp(",16,34,96,80,"))
+ rectfill(to_tab_unp(",0,0,128,128,6,"))
+ checkered_floor(to_tab_unp(",16,10,0,0,7,12,8,4,7,3,7,"))
+ clip()
+end
+
+function drw_title()
+ cls(12)
+ camera(0,cam_pos/2-40)
+ fillp(0b0101101001011010.1)
+ rectfill(to_tab_unp(",0,2,128,4,6,"))
+ fillp()
+ rectfill(to_tab_unp(",0,-100,128,1,6,"))
+ --mountains
+ for j=1,33 do
+  local i=0
+  while i<=7 do
+   local k=i%2*2
+   rect(i*20-j-10,j+5+k*2,i*20+j-10,j+5+k*2,3+k*5)
+  i+=2
+  if (i==8) i=1
+  end
+ end
+ rectfill(to_tab_unp(",0,39,128,128,3,"))
+ --far
+ --camera(0,cam_pos-74)
+ checkered_floor(10,5,-4,7,11,15,8+camx1,4,7+camx1,3,5)
+ rectfill(to_tab_unp(",0,34,128,36,3,"))
+ rectfill(to_tab_unp(",0,76,128,120,3,"))
+ fillp(0b0101101001011010.1)
+ rectfill(to_tab_unp(",0,34,128,40,3,"))
+ rectfill(to_tab_unp(",0,72,128,80,3,"))
+ fillp()
+ for i=1,10 do
+  for j=1,10 do
+   local tile=map_tile[1][i][j]
+   if (tile<3) spr(tile+207,i*10-1+camx1,j*5+25)
+  end
+ end
+ --close
+ camera(0,cam_pos*1.5-115)
+ rectfill(to_tab_unp(",0,79,128,128,11,"))
+ clip(0,195-cam_pos*1.5,128,128)
+ checkered_floor(16,10,0,8,9,12,8+camx2,4,7+camx2,3,3)
+ clip()
+ rect(to_tab_unp(",0,79,128,79,1,"))
+
+ palt(11,true)
+ palt(0,false)
+ --jack
+ sspr(0,48,16,16,camx2+8,71)
+ --chars
+ local xc={0,20,40,50,75,90}
+ local yc={0,90,80,90,70,80}
+ for i=2,#party do
+  --sspr(party[i]*16,32,16,16,camx2+xc[i],yc[i],true)
+  --draw_char(party[i],xc[i],yc[i])
+ end
+ camera()
+ --title
+ pal()
+ outline(sspr,1,1,40,64,64,32,38,29)
+ pal(7,1)
+ sspr(40,64,64,32,38,29)
+ pal()
+ outline(sspr,1,1,40,64,64,32,38,32)
+ pal()
+ if g_time>60 then
+  if (g_time%20<12) print("click to start",36,80,7)
+  print("by bonevolt",80,121,7)
+ end
+end
+
+function drw_map()
+ --grey-blue pattern
+ fillp(0b1100110000110011)
+	rectfill(to_tab_unp(",0,0,127,127,0x15,"))
+ fillp()
+	pal()
+ rect(to_tab_unp(",4,4,123,123,0,"))
+ rect(to_tab_unp(",13,13,114,114,1,"))
+
+	--borders
+ sspr(to_tab_unp(",0,96,4,4,0,0,"))
+ sspr(to_tab_unp(",4,96,4,4,124,0,"))
+ sspr(to_tab_unp(",0,100,4,4,0,124,"))
+ sspr(to_tab_unp(",4,100,4,4,124,124,"))
+ 
+ sspr(to_tab_unp(",3,96,1,4,4,0,120,4,"))
+ sspr(to_tab_unp(",3,96,1,4,4,124,120,4,"))
+ sspr(to_tab_unp(",0,99,4,1,0,4,4,120,"))
+ sspr(to_tab_unp(",0,99,4,1,124,4,4,120,"))
+
+	--floor
+	rectfill(to_tab_unp(",14,14,113,113,11,"))
+ checkered_floor(to_tab_unp(",10,10,2,2,10,10,4,4,3,3,3,"))
+ 
+ --	battle icons
+ --[[for i=1,10 do
+  for j=1,10 do
+	  if (batt[i][j]<.1) outline(spr,0,0,203,i*10+5,j*10+4)
+  end
+ end]]
+ 
+ --dark or else
+ for i=1,10 do
+  for j=1,10 do
+	  if dark[i][j] then
+	   rectfill(i*10+4,j*10+4,i*10+13,j*10+13,0)
+	  else
+	   local sprh=1
+	   if (curr_map[i][j]==5) sprh=2
+	   outline(spr,0,0,curr_map[i][j]+207,i*10+5,(j-sprh+1)*10+4,1,sprh)
+	  end
+  end
+ end
+ 
+ --char
+ palt(11,true)
+ palt(0,false)
+ outline(spr,0,0,193,m_char_x*10+5,m_char_y*10+4)
+ pal()
+end
+
+function drw_battle()
+	--floor
+	cls(11)
+ checkered_floor(to_tab_unp(",16,10,0,0,7,12,8,4,7,3,3,"))
+
+	--play button
+	outline(sspr,1+hplay*8,to_tab_unp(",0,8,0,16,16,108,100,16,16,"))
+
+	--token
+	--[[
+	palt(11,true)
+	outline(sspr,to_tab_unp(",1,0,96,0,16,16,108,112,16,16,"))
+	palt()
+	]]
+
+	--deck
+	local col,maxx=5,flr((#deck+9)/10)
+	for i=1,maxx do
+	 if (i>=maxx-3) col=6
+	 if (i==maxx) col=7
+	 draw_crd_f(3,94-i*2,col)
+	end
+	pal()
+	
+	--if (htilex) hlight_tile(htilex,htiley,9+g_time/2%2,rectfill)
+	hlight_chars(hchars)
+ if (hareax1) hlight_area(hareax1,hareay1,hareax2,hareay2)
+
+	--pre-battle
+ if pre_battle==true then
+ 	for tt in all(summ_tile) do
+ 	 hlight_area(2,tt,2,tt)
+ 	end
+	end
+	--char
+	for ch in all(char) do
+	 draw_char(ch.typ,ch.x,ch.y,ch.algn==2,ch.hp,ch.hpmx,ch)
+	end
+	
+	--pre-battle
+ if pre_battle==true then
+ 	rectfill(10,78,120,114,2)
+ 	fillp(0b0011001111001100)
+ 	rectfill(11,86,119,113,0xef)
+ 	fillp()
+ 	rect(11,86,119,113,9)
+  if chx<=#b_party and chx>0 and chy==6 then
+  	rect(chx*16-1,chy*16-6,chx*16+16-1,chy*16+16-6,flashy_c())
+  end
+  for i=1,#b_party do
+   if b_party[i]~=0 then
+   	draw_char(b_party[i],i*16,90)
+   end
+  end
+  print("character select",33,80,flashy_c())
+ end
+	
+	--particles
+	for p in all(ptc) do
+	 spr(p.sprt+239,p.x-p.sprtw*4,p.y-4,p.sprtw,1,p.sprtflip)
+	 if p.spec==31 or p.spec==38 then
+	  cam_x+=1-rnd(2) cam_y+=1-rnd(2)
+	 else
+	  cam_x,cam_y=0,0
+	 end
+	 camera(cam_x,cam_y)
+	end
+	
+ --cards
+	for crd in all(hand) do
+		draw_crd(crd.x,crd.y,crd.k,crd.n,crd.h,crd)
+		if crd.tgt then
+ 		--local ch=crd.tgt
+ 		--hlight_tile(ch.tx,ch.ty,9)
+		end
+	end
+			
+	if hlight then
+		aux_text(card_txt[hlight.k][hlight.n])
+	end
+	
+	for ch in all(char) do
+	 if tilex==ch.tx and tiley==ch.ty then
+	  aux_text(ch.desc.."\nhp: "..ch.hp.."/"..ch.hpmx.." att: "..ch.att)
+	 end
+	end
+	
+	--floating text
+	for t in all(txt) do
+	 t.y-=.5
+	 t.tim+=1
+	 if (t.tim>18) del(txt,t)
+	 print(t.txt,t.x,t.y,8)
+	end
+end
+--draw functions
+function draw_fade_out()
+ for i=0,11 do
+  flip()
+  rectfill(0,0,i*13,127,0)
+ end
+ fade_in=1
+end
+
+function aux_text(txt)
+ rectfill(0,0,128,13,1)
+ print(txt,2,1,13)
+end
+
+function draw_fade_in(i)
+ rectfill(i*13,0,127,127,0)
+end
+
+function draw_char(typ,x,y,f,hp,hpmx,ch)
+ pal()
+	palt(0,false)
+	palt(chtr[typ],true)
+	
+	--barriers
+	if ch then
+ 	local bcol=14+g_time/2%2
+ 	if count_eff(ch,9)>0 or count_eff(ch,13)>0 then
+ 		if (count_eff(ch,13)>0) bcol-=8
+ 		circfill(x+6,y+7,10,bcol)
+ 	end
+	end
+	
+ local w,h,sx,sy,xx,yy=chsprw[typ],chsprh[typ],chsprx[typ],chspry[typ],choffx[typ],choffy[typ]
+	if (hp and ch.dead==false) rect(x+1,y-2,x+12,y-1,2)
+ 
+ --check invis
+	if (ch and count_eff(ch,11)==0 or g_time%2==0)
+	or ch==nil then
+ 	outline(sspr,csprb[typ],0,sx,sy,w,h,x+xx,y+yy,w,h,f)
+ end
+ 
+ --apenas quando o item "ch" eh preenchido. refazer, placeholder
+ if ch then
+  --other effects
+  local curr_eff=g_time%20+1
+  local curr_eff_v=count_eff(ch,curr_eff)
+	 if curr_eff_v~=0 then
+	  if curr_eff_v>0 and eff_pal_p[curr_eff]>=0 then
+	   pal_all(eff_pal_p[curr_eff])
+	  elseif curr_eff_v<0 and eff_pal_n[curr_eff]>=0 then
+	   pal_all(eff_pal_n[curr_eff])
+	  end
+	  sspr(sx,sy,w,h,x+xx,y+yy,w,h,f)
+ 	end
+ 	--refazer
+  if (ch.dead==true) then
+	  pal_all(0)
+	  sspr(sx,sy,w,h,x+xx,y+yy,w,h,f) 
+  end
+	end
+	
+	if (hp and ch.dead==false) rect(x+1,y-2,x+1+11*hp/hpmx,y-2,8)
+	pal()
+end
+
+function draw_crd(x,y,k,n,h,c)
+ if not c.used or c.used%2<1 then
+  if (h>0) y=84
+  y-=(c.used or 0)/4
+  if (h==2 and g_time%4<2) h=1
+  outline(rectfill,hcol[h],0,x,y,x+24,y+33,7)
+  pal()
+  local off,ten=0,0
+  if (n>10) off=2
+  if (n==10) ten=1
+  pal(8,sget(3+k*5,18))
+  
+  --text
+  local function txt(f)
+   sspr(21+n*3+off,0,3+ten*2,5,x+2+18*f-ten,y+1+27*f,3+ten*2,5,f==1,f==1)
+  end
+  txt(0)
+  txt(1)
+  
+  pal()
+  --kind
+  local c,s,ex=7,k*5,card_sub[k][n]*20
+  if (ex>=20 and ((g_time%20<3) or y<90)) c=kcol[k] s+=ex
+  outline(sspr,c,0,3+s,16,5,5,x+1,y+8)
+  outline(sspr,c,0,3+s,16,5,5,x+19,y+21,5,5,false,true)
+ 
+  --small kind
+  function d_kn(n)
+   sspr(5+k*3,21,3,4,x+kposx[n],y+kposy[n],3,4,kflip[n],kflip[n])
+  end
+  
+  for i in all(kpos[n]) do
+   d_kn(i)
+  end
+ end
+end
+
+function draw_crd_f(x,y,c)
+ outline(rectfill,1,0,x,y,x+24,y+33,c)
+ fillp(0b0101100001010010) 
+ outline(rectfill,8,0,x+3,y+3,x+21,y+30,0xe8)
+ fillp()
+end
+
+function outline(draw,c,t,...)
+ if c then
+  --t:0 normal t:1 bold
+  pal_all(c or 0)
+  for i=-1,1 do
+   for j=-1,1 do
+    if ((i==0 or j==0) and i~=j) or t==1 then
+     cam(i,j)
+     draw(...)
+    end
+   end
+  end
+ end
+ cam()
+ cpal()
+ draw(...)
+end
+
+function pal_all(p)
+  for i=0,15 do
+    pal(i,p)
+  end
+end
+
+function cam(xx,yy)
+  camera(cam_x+(xx or 0),cam_y+(yy or 0))
+end
+
+function cpal()
+		for i=0,15 do
+				pal(i,i)
+		end
+end
+
+function hlight_tile(x,y,c,func)
+ func=func or rect
+ func(x*16-8,y*10+4,x*16+7,y*10+13,c)
+end
+
+function flashy_c()
+ return 9+g_time/2%2
+end
+
+function hlight_area(x1,y1,x2,y2,cc)
+ local col=cc or flashy_c()
+ x2=x2 or x1
+ y2=y2 or y1
+ rect(x1*16-8,y1*10+4,x2*16+7,y2*10+13,col)
+end
+
+function hlight_chars(algn)
+ local cc=14+g_time/2%2
+	for ch in all (char) do
+  if (ch.algn==algn or algn==3) hlight_tile(ch.tx,ch.ty,cc)
+ end
+ if algn==4 then
+  hlight_area(5,1,7,7,cc)
+ end
+end
+
+function checkered_floor(ww,hh,mn1,mn2,mx1,mx2,ox1,oy1,ox2,oy2,cc)
+	for i=mn1-1,mx1 do
+	 for j=mn2-1,mx2 do
+	  if (i+j)%2==0 then
+	 		rectfill(ww*i+ox1,hh*j+oy1,ww+ww*i+ox2,hh+hh*j+oy2,cc)
+	 	end
+	 end
+	end
+end
